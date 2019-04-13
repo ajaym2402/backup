@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: redhat-test
+  namespace: default
+  labels:
+    k8s-app: redhat-test
+spec:
+  selector:
+    matchLabels:
+      name: redhat-test
+  template:
+    metadata:
+      labels:
+        name: redhat-test
+    spec:
+      tolerations:
+      - key: node-role.kubernetes.io/master
+        effect: NoSchedule
+      containers:
+      - name: redhat-test
+        image: ajaymatters/redhat-test
+        volumeMounts:
+        - name: varlog
+          mountPath: "/var/"
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - name: varlog
+        persistentVolumeClaim:
+          claimName: myclaim
+        
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv0003
+spec:
+  capacity:
+    storage: 5Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  storageClassName: slow
+  hostPath:
+    path: "/mnt/data"
+
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: myclaim
+spec:
+  accessModes:
+    - ReadWriteMany
+  volumeMode: Filesystem
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: slow
